@@ -1,6 +1,7 @@
 import yfinance
 from xml.etree import ElementTree 
 from typing import List
+import json
 
 class Stock:
     def __init__(self, name: str, key: str, amount: int, investment: float):
@@ -17,6 +18,18 @@ class Stock:
 class Portfolio:
     def __init__(self, stockList: List[Stock]):
         self.stocks = stockList
+
+    def get_values(self):
+        out = []
+        for s in self.stocks:
+            out.append({
+                'name':s.name,
+                'key':s.key,
+                'amount':str(s.amount),
+                'investment':str(s.investment),
+                'purchasePrice':str(s.purchasePrice)
+            })
+        return out
 
     def __str__(self) -> str:
         return str(list(map(str, self.stocks)))
