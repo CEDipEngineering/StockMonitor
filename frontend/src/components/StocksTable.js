@@ -8,7 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
-class App extends React.Component {
+class StocksTable extends React.Component {
 
   // Constructor
   constructor(props) {
@@ -70,4 +70,4 @@ class App extends React.Component {
 }
 }
 
-export default App;
+export default StocksTable;

@@ -1,4 +1,4 @@
-import yfinance
+import yfinance as yf
 from xml.etree import ElementTree 
 from typing import List
 import json
@@ -34,6 +34,16 @@ class Portfolio:
     def __str__(self) -> str:
         return str(list(map(str, self.stocks)))
 
+    def get_history(self):
+        keys=list(map(lambda x: x.key, self.stocks))
+        tik = yf.Tickers(tickers=keys)
+        t = tik.tickers[keys[0]]
+        series = t.history('6mo')[['Close']]
+        series['Close'] = series['Close'].apply(lambda x: float(f"{x:.03f}"))
+        series['Day'] = series.index#.strftime(r"%Y-%m-%d")
+        result = series.to_json(orient="records")
+        parsed = json.loads(result)
+        return parsed
 
 def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
     tree = ElementTree.parse(fileName)
@@ -51,4 +61,5 @@ def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
 
 
 if __name__ == "__main__":
-    print(getPortfolio())
+    p = getPortfolio()
+    p.get_history()

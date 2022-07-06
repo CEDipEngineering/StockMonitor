@@ -27,3 +27,7 @@ async def read_root() -> dict:
 @app.get('/data', tags='data')
 async def get_data() -> dict:
     return pf.get_values()
+
+@app.get('/history', tags=['history'])
+async def get_history() -> dict:
+    return pf.get_history()

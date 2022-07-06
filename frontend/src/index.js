@@ -2,12 +2,14 @@ import React from "react";
 import { render } from 'react-dom';
 import "./App.css"
 
-import Fetcher from "./components/Fetcher";  // new
+import StocksTable from "./components/StocksTable";
+import StocksGraph from "./components/StocksGraph";
 
 function App() {
   return (
-    <div class="Fetcher">
-      <Fetcher/>
+    <div className="Fetcher">
+      <StocksTable/>
+      <StocksGraph/>
     </div>
   )
 }
