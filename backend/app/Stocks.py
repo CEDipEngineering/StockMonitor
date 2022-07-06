@@ -18,6 +18,7 @@ class Stock:
 class Portfolio:
     def __init__(self, stockList: List[Stock]):
         self.stocks = stockList
+        self.history = self.build_history()
 
     def get_values(self):
         out = []
@@ -34,16 +35,27 @@ class Portfolio:
     def __str__(self) -> str:
         return str(list(map(str, self.stocks)))
 
-    def get_history(self):
-        keys=list(map(lambda x: x.key, self.stocks))
+    def build_history(self):
+        keys=self.get_stock_names()
         tik = yf.Tickers(tickers=keys)
-        t = tik.tickers[keys[0]]
-        series = t.history('6mo')[['Close']]
-        series['Close'] = series['Close'].apply(lambda x: float(f"{x:.03f}"))
-        series['Day'] = series.index#.strftime(r"%Y-%m-%d")
-        result = series.to_json(orient="records")
-        parsed = json.loads(result)
-        return parsed
+        out = dict()
+        for k in keys:
+            t = tik.tickers[k]
+            series = t.history('3y')[['Close']]
+            series['Close'] = series['Close'].apply(lambda x: float(f"{x:.03f}"))
+            series['Day'] = series.index#.strftime(r"%Y-%m-%d")
+            series['Avg'] = series['Close'].rolling(window=10).mean()
+            series = series.dropna(axis=0)
+            result = series.to_json(orient="records")
+            parsed = json.loads(result)
+            out[k] = parsed
+        return out
+
+    def get_history(self, key):
+        return self.history[key]
+
+    def get_stock_names(self):
+        return list(map(lambda x: x.key, self.stocks))
 
 def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
     tree = ElementTree.parse(fileName)
@@ -62,4 +74,4 @@ def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
 
 if __name__ == "__main__":
     p = getPortfolio()
-    p.get_history()
+    p.get_history("ITSA4.SA")

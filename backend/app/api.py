@@ -28,6 +28,8 @@ async def read_root() -> dict:
 async def get_data() -> dict:
     return pf.get_values()
 
-@app.get('/history', tags=['history'])
-async def get_history() -> dict:
-    return pf.get_history()
+@app.get('/history/', tags=['history'])
+async def get_history(key: str = None) -> dict:
+    if key is None:
+        return {"data":pf.get_stock_names()}
+    return pf.get_history(key)
