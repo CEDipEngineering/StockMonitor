@@ -1,10 +1,7 @@
 .Fetcher {
-  margin: 1rem 4rem;
-}
-
-.Stack {
-  display: flex;
-  align-content: center;
+  display: flex column;
   justify-content: center;
-  margin: 0 auto;
+  align-items: center;
+  align-content: center;
+  margin: 1rem 4rem;
 }

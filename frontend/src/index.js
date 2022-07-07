@@ -1,18 +1,20 @@
 import React from "react";
-import { render } from 'react-dom';
 import "./App.css"
+import Box from '@mui/material/Box';
+import { createRoot } from 'react-dom/client';
 
-import StocksTable from "./components/StocksTable";
 import StocksGraph from "./components/StocksGraph";
+import Header from "./components/Header";
 
 function App() {
   return (
-    <div className="Fetcher">
-      <StocksTable/>
-      <StocksGraph/>
-    </div>
+    <Box className="Fetcher">
+      <Header />
+      <StocksGraph />
+    </Box>
   )
 }
 
-const rootElement = document.getElementById("root")
-render(<App />, rootElement)
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(<App/>);
