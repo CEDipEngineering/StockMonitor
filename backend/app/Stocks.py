@@ -2,6 +2,9 @@ import yfinance as yf
 from xml.etree import ElementTree 
 from typing import List
 import json
+import pandas as pd
+from datetime import datetime
+import numpy as np
 
 class Stock:
     def __init__(self, name: str, key: str, amount: int, investment: float):
@@ -19,6 +22,9 @@ class Portfolio:
     def __init__(self, stockList: List[Stock]):
         self.stocks = stockList
         self.history = self.build_history()
+        self.stockDict = dict() # Access by key
+        for s in self.stocks:
+            self.stockDict[s.key] = s
 
     def get_values(self):
         out = []
@@ -56,6 +62,39 @@ class Portfolio:
 
     def get_stock_names(self):
         return list(map(lambda x: x.key, self.stocks))
+
+    def get_details(self, key):
+        if key not in self.stockDict.keys(): return None
+        
+        stock: Stock = self.stockDict[key]
+        return {"Name": stock.name,
+                "PurchasePrice": stock.purchasePrice,
+                "Investment": stock.investment,
+                "Amount": stock.amount,
+                "PurchaseDate":self.estimate_purchase_time(key),
+                "Profit":self.calculateProfit(key)}
+
+    def calculateProfit(self, key):
+        stock: Stock = self.stockDict[key]
+        history = self.get_history(key)
+        history = series = pd.read_json(json.dumps(history), orient="records")
+        curr_value = history.sort_values('Day', ascending=False).reset_index()["Close"][0]
+        profit = curr_value/stock.purchasePrice
+        return profit
+
+    def estimate_purchase_time(self, key):
+        h = self.get_history(key)
+        series = pd.read_json(json.dumps(h), orient="records")
+        series['Day'] = pd.to_datetime(series['Day'], unit='ms') # Convert back to days
+        series = series[(series['Day'] < datetime(2020, 4, 1)) & (series['Day'] > datetime(2020, 2, 1))]
+        price = self.stockDict[key].purchasePrice
+        xp = series['Close']
+        fp = series['Day'].to_list()
+        index = np.argmin((xp-price).abs())
+        result = pd.Series([fp[index]]).to_json()
+        parsed = json.loads(result)      
+        return parsed["0"]
+
 
 def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
     tree = ElementTree.parse(fileName)
