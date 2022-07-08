@@ -21,10 +21,15 @@ class Stock:
 class Portfolio:
     def __init__(self, stockList: List[Stock]):
         self.stocks = stockList
-        self.history = self.build_history()
         self.stockDict = dict() # Access by key
+        self.seriesDict = dict()
         for s in self.stocks:
             self.stockDict[s.key] = s
+        self.history = self.build_history()
+        self.build_percentages()
+
+    def build_percentages(self, key):
+        pass
 
     def get_values(self):
         out = []
@@ -52,6 +57,7 @@ class Portfolio:
             series['Day'] = series.index#.strftime(r"%Y-%m-%d")
             series['Avg'] = series['Close'].rolling(window=10).mean()
             series = series.dropna(axis=0)
+            self.seriesDict[k] = series.copy()
             result = series.to_json(orient="records")
             parsed = json.loads(result)
             out[k] = parsed
@@ -64,27 +70,32 @@ class Portfolio:
         return list(map(lambda x: x.key, self.stocks))
 
     def get_details(self, key):
-        if key not in self.stockDict.keys(): return None
-        
         stock: Stock = self.stockDict[key]
         return {"Name": stock.name,
                 "PurchasePrice": stock.purchasePrice,
                 "Investment": stock.investment,
                 "Amount": stock.amount,
                 "PurchaseDate":self.estimate_purchase_time(key),
-                "Profit":self.calculateProfit(key)}
+                "Profit":self.calculateProfit(key),
+                "CurrentValue":self.get_current_value(key),
+                "PercentageWorth":self.get_percentage_worth(key)}
+
+    def get_current_value(self, key):
+        series = self.seriesDict[key]
+        curr_value = series.sort_values('Day', ascending=False).reset_index()["Close"][0]
+        return curr_value
+
+    def get_percentage_worth(self, key):
+        pass
 
     def calculateProfit(self, key):
         stock: Stock = self.stockDict[key]
-        history = self.get_history(key)
-        history = series = pd.read_json(json.dumps(history), orient="records")
-        curr_value = history.sort_values('Day', ascending=False).reset_index()["Close"][0]
+        curr_value = self.get_current_value(key)
         profit = curr_value/stock.purchasePrice
         return profit
 
     def estimate_purchase_time(self, key):
-        h = self.get_history(key)
-        series = pd.read_json(json.dumps(h), orient="records")
+        series = self.seriesDict[key]
         series['Day'] = pd.to_datetime(series['Day'], unit='ms') # Convert back to days
         series = series[(series['Day'] < datetime(2020, 4, 1)) & (series['Day'] > datetime(2020, 2, 1))]
         price = self.stockDict[key].purchasePrice
@@ -95,6 +106,8 @@ class Portfolio:
         parsed = json.loads(result)      
         return parsed["0"]
 
+    def validate_key(self, key):
+        return key in self.stockDict.keys()
 
 def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
     tree = ElementTree.parse(fileName)
@@ -109,7 +122,6 @@ def getPortfolio(fileName: str = "../env/stocks.xml") -> Portfolio:
         stocks.append(Stock(name, key, amount, investment))
     
     return Portfolio(stocks)
-
 
 if __name__ == "__main__":
     p = getPortfolio()

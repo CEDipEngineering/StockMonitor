@@ -32,8 +32,10 @@ async def get_data() -> dict:
 async def get_history(key: str = None) -> dict:
     if key is None:
         return {"data":pf.get_stock_names()}
+    if not pf.validate_key(key): return None
     return pf.get_history(key)
 
 @app.get('/details')
 async def get_details(key: str):
+    if not pf.validate_key(key): return None
     return pf.get_details(key)

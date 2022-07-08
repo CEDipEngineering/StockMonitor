@@ -3,14 +3,14 @@ import "./App.css"
 import Box from '@mui/material/Box';
 import { createRoot } from 'react-dom/client';
 
-import StocksGraph from "./components/StocksGraph";
+import TabbedMenu from "./components/TabbedMenu";
 import Header from "./components/Header";
 
 function App() {
   return (
     <Box className="Fetcher">
       <Header />
-      <StocksGraph />
+      <TabbedMenu />
     </Box>
   )
 }
