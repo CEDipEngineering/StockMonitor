@@ -108,10 +108,11 @@ dist
 ############
 
 __pycache__
-
+cached.pickle
 
 ###################
 ## Personal Data ##
 ###################
 
 env
+

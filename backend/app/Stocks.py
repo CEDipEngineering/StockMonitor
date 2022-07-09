@@ -3,8 +3,9 @@ from xml.etree import ElementTree
 from typing import List
 import json
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
+import pickle as pkl
 
 class Stock:
     def __init__(self, name: str, key: str, amount: int, investment: float):
@@ -19,17 +20,24 @@ class Stock:
         return "There are {1} stocks of {0}".format(self.name if not self.name == "" else self.key, self.amount)
 
 class Portfolio:
+    FORCE_FETCH = False
     def __init__(self, stockList: List[Stock]):
         self.stocks = stockList
         self.stockDict = dict() # Access by key
         self.seriesDict = dict()
         for s in self.stocks:
-            self.stockDict[s.key] = s
+            self.stockDict[s.key] = s 
         self.history = self.build_history()
-        self.build_percentages()
+        self.percentageHistoryDict = self.build_percentages()
 
-    def build_percentages(self, key):
-        pass
+    def build_percentages(self):
+        values = dict()
+        for s in self.stocks:
+            values[s.key] = self.seriesDict[s.key]['Close']*s.purchasePrice
+        self.valueHistory = values
+        df = pd.DataFrame(data=self.valueHistory)
+        df = df.div(df.sum(axis=1), axis=0)
+        return df.to_dict(orient='list')
 
     def get_values(self):
         out = []
@@ -46,8 +54,8 @@ class Portfolio:
     def __str__(self) -> str:
         return str(list(map(str, self.stocks)))
 
-    def build_history(self):
-        keys=self.get_stock_names()
+    def fetch_data(self):
+        keys = self.get_stock_names()
         tik = yf.Tickers(tickers=keys)
         out = dict()
         for k in keys:
@@ -61,32 +69,68 @@ class Portfolio:
             result = series.to_json(orient="records")
             parsed = json.loads(result)
             out[k] = parsed
+        now = datetime.now()
+        out['Timestamp'] = now
+        out['Series'] = self.seriesDict
         return out
+
+    def build_history(self):
+        try:
+            # Read cache
+            with open('./app/cached.pickle', 'rb') as f:
+                obj = pkl.load(f)
+            self.seriesDict = obj.pop("Series")
+            last_fetch_time = datetime.strptime(obj.pop('Timestamp'), r"%Y-%m-%d %H:%M:%S.%f")
+            current_time = datetime.now()
+            diff = current_time-last_fetch_time
+            # Been over an hour since last fetch
+            if diff>timedelta(hours=1) or Portfolio.FORCE_FETCH:
+                data = self.fetch_data()
+                with open("./app/cached.pickle", 'wb') as f:
+                    pkl.dump(data, f)
+                data.pop('Timestamp')
+                return data
+        except FileNotFoundError:
+            # Cache not found, fetch data from scratch
+            data = self.fetch_data()
+            with open("./app/cached.pickle", 'wb') as f:
+                pkl.dump(data, f)
+            data.pop('Timestamp')
+            return data
 
     def get_history(self, key):
         return self.history[key]
+
+    def get_percentage_history(self, key):
+        return self.percentageHistoryDict[key]
 
     def get_stock_names(self):
         return list(map(lambda x: x.key, self.stocks))
 
     def get_details(self, key):
         stock: Stock = self.stockDict[key]
-        return {"Name": stock.name,
-                "PurchasePrice": stock.purchasePrice,
-                "Investment": stock.investment,
-                "Amount": stock.amount,
-                "PurchaseDate":self.estimate_purchase_time(key),
-                "Profit":self.calculateProfit(key),
-                "CurrentValue":self.get_current_value(key),
-                "PercentageWorth":self.get_percentage_worth(key)}
+        purchase_date = self.estimate_purchase_time(key)
+        profit = self.calculateProfit(key)
+        value = self.get_current_value(key)
+        percent = self.get_current_percentage_worth(key)
+        out_json = {"Name": stock.name,
+                    "PurchasePrice": stock.purchasePrice,
+                    "Investment": stock.investment,
+                    "Amount": stock.amount,
+                    "PurchaseDate": purchase_date,
+                    "Profit": profit,
+                    "CurrentValue": value,
+                    "PercentageWorth": percent}
+        print(out_json)
+        return out_json
 
     def get_current_value(self, key):
         series = self.seriesDict[key]
         curr_value = series.sort_values('Day', ascending=False).reset_index()["Close"][0]
         return curr_value
 
-    def get_percentage_worth(self, key):
-        pass
+    def get_current_percentage_worth(self, key):
+        return self.get_percentage_history(key)[-1]
 
     def calculateProfit(self, key):
         stock: Stock = self.stockDict[key]
