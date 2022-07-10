@@ -48,6 +48,7 @@ class TabbedMenu extends React.Component {
       items: [],
       details: {},
       names: [],
+      portfolio_worth: [],
       value: 0,
       DataisLoaded: false
     };
@@ -68,6 +69,7 @@ class TabbedMenu extends React.Component {
         var items = {};
         var fetches = [];
         var details = {};
+        var portfolio_worth = [];
         for (let key of data) {
           fetches.push(
             fetch("http://localhost:8000/history?key=" + key)
@@ -89,15 +91,28 @@ class TabbedMenu extends React.Component {
             })
           );
         }
+        fetches.push(
+          fetch('http://localhost:8000/portfolio/worth')
+          .then((res) => res.json())
+          .then((json) => {
+            let arr = [];
+            // console.log(json);
+            for (let c of json) {
+              arr.push({ "Day": new Date(c["Day"]), "Portfolio": c["Portfolio"], 'Avg': c['Avg']})
+            }
+            portfolio_worth=arr.slice();
+          })
+        )
 
         // Await all fetches then save to state
         Promise.all(fetches).then(() => {
           this.setState({
             items: items,
             DataisLoaded: true,
-            details: details
+            details: details,
+            portfolio_worth: portfolio_worth
           });
-          // console.log(items);
+          console.log(details['ITSA4.SA']['PurchaseDate']);
         })
       });
   }
@@ -123,7 +138,7 @@ class TabbedMenu extends React.Component {
       this.setState({ value: newValue });
     };
 
-    const { DataisLoaded, items, names, value, details } = this.state;
+    const { DataisLoaded, items, names, value, details, portfolio_worth } = this.state;
     if (!DataisLoaded) return <h3> Loading graphs.... </h3>;
     return (
       <Box sx={{ width: '100%' }}>
@@ -132,9 +147,10 @@ class TabbedMenu extends React.Component {
             <Tab label="Summary" index={0} key={0} />
             {
               names.map((name, index) => {
-                return <Tab label={name} id={index + 1} key={index + 1} />
+                return <Tab label={name} index={index + 1} key={index + 1} />
               })
             }
+            <Tab label={"Portfolio"} index={names.length+1} key={names.length+1}/>
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
@@ -146,8 +162,7 @@ class TabbedMenu extends React.Component {
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart
                   data={items[name]} >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="Day" scale="time" tickFormatter={(date) => { return monthObj[date.getMonth()] }} />
+                  <XAxis dataKey="Day" tickFormatter={(date) => { return monthObj[date.getMonth()] }} />
                   <YAxis type="number" domain={['dataMin - 2', 'dataMax + 2']} />
                   <Tooltip />
                   <Legend />
@@ -159,6 +174,20 @@ class TabbedMenu extends React.Component {
             </TabPanel>
           })
         }
+        <TabPanel value={value} index={names.length+1}>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart
+              data={portfolio_worth} >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="Day" scale="time" tickFormatter={(date) => { return monthObj[date.getMonth()] }} />
+              <YAxis type="number" domain={['dataMin - 100', 'dataMax + 100']} />
+              <Tooltip />
+              <Legend />
+              <Line dataKey="Portfolio" stroke="#cc5000" strokeWidth={2} opacity={0.3} dot={false} name={"Portfolio"} />
+              <Line dataKey="Avg" stroke="#21c977" strokeWidth={2} opacity={1} dot={false} name={"Rolling Average"}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </TabPanel> 
       </Box>
     );
   }

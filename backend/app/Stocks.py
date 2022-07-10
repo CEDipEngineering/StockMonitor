@@ -33,7 +33,7 @@ class Portfolio:
     def build_percentages(self):
         values = dict()
         for s in self.stocks:
-            values[s.key] = self.seriesDict[s.key]['Close']*s.purchasePrice
+            values[s.key] = self.seriesDict[s.key]['Close']*s.amount
         self.valueHistory = values
         df = pd.DataFrame(data=self.valueHistory)
         df = df.div(df.sum(axis=1), axis=0)
@@ -133,6 +133,16 @@ class Portfolio:
 
     def get_current_percentage_worth(self, key):
         return self.get_percentage_history(key)[-1]
+
+    def get_full_worth_history(self):
+        value_history = pd.DataFrame(self.valueHistory)
+        value_history['Day'] = value_history.index
+        value_history['Portfolio'] = value_history.drop('Day', axis = 1).sum(axis=1)
+        value_history['Avg'] = value_history['Portfolio'].rolling(window=5).mean()
+        value_history = value_history.dropna(axis = 0)
+        full_worth_history = value_history[['Day', 'Portfolio', 'Avg']]
+        out = json.loads(full_worth_history.to_json(orient='records'))
+        return out 
 
     def calculateProfit(self, key):
         stock: Stock = self.stockDict[key]

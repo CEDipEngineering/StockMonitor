@@ -39,3 +39,7 @@ async def get_history(key: str = None) -> dict:
 async def get_details(key: str):
     if not pf.validate_key(key): return None
     return pf.get_details(key)
+
+@app.get('/portfolio/worth')
+async def get_worth() -> dict:
+    return pf.get_full_worth_history()
