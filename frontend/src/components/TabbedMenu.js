@@ -138,7 +138,7 @@ class TabbedMenu extends React.Component {
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <StocksTable />
+          <StocksTable details={details} names={names}/>
         </TabPanel>
         {
           names.map((name, index) => {

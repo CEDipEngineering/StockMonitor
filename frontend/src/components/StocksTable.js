@@ -1,12 +1,8 @@
 import React from "react";
 
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
+import { DataGrid } from '@mui/x-data-grid';
+import Box from '@mui/material/Box';
+
 
 class StocksTable extends React.Component {
 
@@ -15,59 +11,61 @@ class StocksTable extends React.Component {
     super(props);
 
     this.state = {
-      items: [],
-      DataisLoaded: false
+      details: this.props.details,
+      names: this.props.names,
     };
   }
 
   // ComponentDidMount is used to
   // execute the code
   componentDidMount() {
-    fetch(
-"http://localhost:8000/data")
-      .then((res) => res.json())
-      .then((json) => {
-        this.setState({
-          items: json,
-          DataisLoaded: true
-        });
-      })
   }
-  render() {
-    const { DataisLoaded, items } = this.state;
-    if (!DataisLoaded) return <div>
-      <h1> Pleses wait some time.... </h1> </div> ;
 
+  render() {
+    const { details, names } = this.state;
+    const columns = [
+      {field: "Name", headerName: "Stock", width: "100"},
+      {field: "Key", headerName: "Key", width: "100"},
+      {field: "Amount", headerName: "Amount", width: "75"},
+      {field: "Investment", headerName: "Investment (R$)", width: "150", valueFormatter: (params) => {
+          const formatted = Number(params.value).toFixed(2).toString();
+          return `${formatted}`
+        }
+      },
+      {field: "PurchasePrice", headerName: "Price at Purchase (R$/pt)", width: "200", valueFormatter: (params) => {
+          const formatted = Number(params.value).toFixed(2).toString();
+          return `${formatted}`
+        }
+      },
+      {field: "Profit", headerName: "Profit", width: "125", valueFormatter: (params) => {
+          const formatted = Number(params.value * 100).toFixed(2).toString();
+          return `${formatted} %`
+        }
+      },
+      {field: "PercentageWorth", headerName: "Percentage of Protfolio", width: "200", valueFormatter: (params) => {
+        const formatted = Number(params.value * 100).toFixed(2).toString();
+        return `${formatted} %`
+      }
+    }
+
+    ];
+    let rows = [];
+    let index = 0;
+    for (let n of names){
+      rows.push({"id":index, "Name":n, ...details[n]});
+      index++;
+    }
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 300 }} aria-label="simple table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Stocks </TableCell>
-                        <TableCell align="right">Key</TableCell>
-                        <TableCell align="right">Amount</TableCell>
-                        <TableCell align="right">Investment&nbsp;(R$)</TableCell>
-                        <TableCell align="right">Price At Purchase&nbsp;(R$/pt)</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {items.map((row) => (
-                        <TableRow
-                        key={row.name}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                        <TableCell component="th" scope="row">{row.name}</TableCell>
-                        <TableCell align="right">{row.key}</TableCell>
-                        <TableCell align="right">{row.amount}</TableCell>
-                        <TableCell align="right">{row.investment}</TableCell>
-                        <TableCell align="right">{row.purchasePrice}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+      <Box sx={{ height: '36rem', width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          disableColumnMenu
+          rowsPerPageOptions={[names.length]}
+        />
+      </Box>
     );
-}
+  }
 }
 
 export default StocksTable;

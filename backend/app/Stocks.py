@@ -123,7 +123,7 @@ class Portfolio:
                     "Profit": profit,
                     "CurrentValue": value,
                     "PercentageWorth": percent}
-        print(out_json)
+        # print(out_json)
         return out_json
 
     def get_current_value(self, key):
