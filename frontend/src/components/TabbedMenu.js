@@ -139,7 +139,6 @@ class TabbedMenu extends React.Component {
         </Box>
         <TabPanel value={value} index={0}>
           <StocksTable />
-          <Summary data={details["ITSA4.SA"]} />
         </TabPanel>
         {
           names.map((name, index) => {
@@ -153,9 +152,10 @@ class TabbedMenu extends React.Component {
                   <Tooltip />
                   <Legend />
                   <Line dataKey="Close" stroke="#cc5000" strokeWidth={2} opacity={0.3} dot={false} name={name} />
-                  <Line dataKey="Avg" stroke="#21c977" strokeWidth={2} opacity={1} dot={false} />
+                  <Line dataKey="Avg" stroke="#21c977" strokeWidth={2} opacity={1} dot={false} name={"Rolling Average"}/>
                 </LineChart>
               </ResponsiveContainer>
+              <Summary data={details[name]}/>
             </TabPanel>
           })
         }

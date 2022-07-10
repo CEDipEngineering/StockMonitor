@@ -80,7 +80,7 @@ class Portfolio:
             with open('./app/cached.pickle', 'rb') as f:
                 obj = pkl.load(f)
             self.seriesDict = obj.pop("Series")
-            last_fetch_time = datetime.strptime(obj.pop('Timestamp'), r"%Y-%m-%d %H:%M:%S.%f")
+            last_fetch_time = obj.pop('Timestamp') # datetime.strptime(obj.pop('Timestamp'), r"%Y-%m-%d %H:%M:%S.%f") # Not necessary to parse, pickle stores it as a date!
             current_time = datetime.now()
             diff = current_time-last_fetch_time
             # Been over an hour since last fetch
@@ -90,6 +90,7 @@ class Portfolio:
                     pkl.dump(data, f)
                 data.pop('Timestamp')
                 return data
+            return obj
         except FileNotFoundError:
             # Cache not found, fetch data from scratch
             data = self.fetch_data()
@@ -117,6 +118,7 @@ class Portfolio:
                     "PurchasePrice": stock.purchasePrice,
                     "Investment": stock.investment,
                     "Amount": stock.amount,
+                    "Key": stock.key,
                     "PurchaseDate": purchase_date,
                     "Profit": profit,
                     "CurrentValue": value,
