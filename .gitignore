@@ -114,5 +114,5 @@ cached.pickle
 ## Personal Data ##
 ###################
 
-env
+env/*
 

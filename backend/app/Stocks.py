@@ -110,7 +110,7 @@ class Portfolio:
 
     def get_details(self, key):
         stock: Stock = self.stockDict[key]
-        purchase_date = self.estimate_purchase_time(key)
+        # purchase_date = self.estimate_purchase_time(key)
         profit = self.calculateProfit(key)
         value = self.get_current_value(key)
         percent = self.get_current_percentage_worth(key)
@@ -119,7 +119,7 @@ class Portfolio:
                     "Investment": stock.investment,
                     "Amount": stock.amount,
                     "Key": stock.key,
-                    "PurchaseDate": purchase_date,
+                    # "PurchaseDate": purchase_date,
                     "Profit": profit,
                     "CurrentValue": value,
                     "PercentageWorth": percent}

@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pyparsing import original_text_for
 from app.Stocks import *
 
 app = FastAPI()

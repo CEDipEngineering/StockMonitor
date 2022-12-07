@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<data>
+    <Stock>
+        <name>Ambev</name>
+        <key>ABEV3.SA</key>
+        <amount>100</amount>
+        <investment>1234.00</investment>
+    </Stock>
+    <Stock>
+        <name>Suzano</name>
+        <key>SUZB3.SA</key>
+        <amount>200</amount>
+        <investment>5432.00</investment>
+    </Stock>
+    <!--
+    <Stock>
+        <name>STOCKNAME</name>
+        <key>STOCKKEY</key>
+        <amount>NUMBEROFSHARES</amount>
+        <investment>AMOUNTINVESTED</investment>
+    </Stock>
+    -->
+</data>
